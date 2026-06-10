@@ -1,0 +1,27 @@
+# Personal data — not included in the repo
+lights/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Tests / tooling
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime artefacts
+panelizer_manifest.json
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Claude Code session data
+.claude/

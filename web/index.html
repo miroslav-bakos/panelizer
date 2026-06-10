@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panelizer</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="aladin/aladin_v2.min.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="panel">
+      <h1>Panelizer</h1>
+      <p class="sub">Group FITS frames into mosaic panels</p>
+
+      <section class="card">
+        <button id="btn-folder" class="primary">Choose folder…</button>
+        <div id="folder-path" class="muted small">No folder selected</div>
+        <label class="checkbox-label">
+          <input id="recursive" type="checkbox" />
+          Include subfolders
+        </label>
+        <div id="scan-status" class="muted small"></div>
+      </section>
+
+      <section class="card">
+        <label>Focal length (mm)
+          <input id="focal" type="number" step="0.1" min="1" value="250" />
+        </label>
+        <label>Pixel size (µm)
+          <input id="pix" type="number" step="0.01" min="0.1" value="2.9" />
+        </label>
+        <div id="scale-info" class="muted small"></div>
+      </section>
+
+      <section class="card">
+        <label class="slider-label">
+          Proximity threshold
+          <span id="thresh-val">15% of FOV</span>
+        </label>
+        <input id="threshold" type="range" min="1" max="100" step="1" value="15" />
+        <div id="link-info" class="muted small"></div>
+      </section>
+
+      <section class="card actions">
+        <button id="btn-dryrun" class="primary" disabled>Dry run</button>
+        <div id="panel-count" class="bigcount">—</div>
+
+        <div class="segmented" id="mode-toggle">
+          <button class="seg active" data-mode="move">Move</button>
+          <button class="seg" data-mode="copy">Copy</button>
+        </div>
+
+        <label class="muted small">Target folder
+          <div class="row tight">
+            <input id="target-path" type="text" readonly placeholder="(same as source)" />
+            <button id="btn-target" class="ghost compact" title="Choose target folder">…</button>
+            <button id="btn-target-clear" class="ghost compact" title="Reset to source">✕</button>
+          </div>
+        </label>
+
+        <div class="row">
+          <button id="btn-commit" disabled>Move files</button>
+          <button id="btn-undo" disabled>Undo</button>
+        </div>
+
+        <div id="commit-progress" class="progress hidden">
+          <div class="progress-track"><div id="progress-fill"></div></div>
+          <div class="row tight progress-row">
+            <div id="progress-text" class="muted small"></div>
+            <button id="btn-cancel" class="compact danger">Cancel</button>
+          </div>
+        </div>
+
+        <button id="btn-export" class="ghost" disabled>Export panels.json</button>
+        <div id="commit-status" class="muted small"></div>
+      </section>
+
+      <section class="card grow">
+        <table id="panel-table">
+          <thead>
+            <tr><th>#</th><th>frames</th><th>RA</th><th>Dec</th><th>exp&nbsp;s</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </aside>
+
+    <main id="map-wrap">
+      <div id="aladin"><div id="aladin-placeholder">Loading sky survey…</div></div>
+    </main>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <div id="modal-msg"></div>
+      <div class="row modal-actions">
+        <button id="modal-cancel" class="ghost">Cancel</button>
+        <button id="modal-ok" class="primary">Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- jQuery required by Aladin v2 (both served locally) -->
+  <script src="aladin/jquery.min.js"></script>
+  <script src="aladin/aladin_v2.min.js" charset="utf-8"></script>
+  <script src="app.js"></script>
+</body>
+</html>
