@@ -6,6 +6,8 @@ A lightweight desktop tool for turning a folder of scattered FITS sub-exposures
 (e.g. a Seestar / smart-telescope mosaic) into organised **panels**, grouped by
 how close their pointing centres are on the sky.
 
+![Panelizer screenshot](https://github.com/user-attachments/assets/bd91fcea-40ac-44aa-87bd-50101bd33d7a)
+
 It can:
 
 - read **RA/Dec**, focal length and pixel size straight from FITS headers,
