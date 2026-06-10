@@ -8,15 +8,15 @@ from __future__ import annotations
 
 import argparse
 import os
-
-# Force X11 (XWayland) — GTK WebKit throws "Protocol error 71" on Wayland.
-os.environ["GDK_BACKEND"] = "x11"
-os.environ.pop("WAYLAND_DISPLAY", None)
-# Disable GPU compositing and DMA-buf — both fail with GBM under XWayland+NVIDIA.
-# Aladin v2 uses Canvas2D (no WebGL) so software rendering is sufficient.
-os.environ.setdefault("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
-os.environ.setdefault("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
 import sys
+
+# Linux/GTK workarounds — must be set before any webview import.
+# On Wayland+NVIDIA, GTK WebKit needs XWayland and software compositing.
+if sys.platform.startswith("linux"):
+    os.environ["GDK_BACKEND"] = "x11"
+    os.environ.pop("WAYLAND_DISPLAY", None)
+    os.environ.setdefault("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
+    os.environ.setdefault("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
 
 from . import cluster, organize
 from .api import DEFAULT_FOCAL, DEFAULT_PIX, Api
@@ -88,8 +88,8 @@ def run_gui() -> int:
         min_size=(1000, 640),
     )
     api.attach(window)
-    # Use the GTK/WebKit backend (system gi bindings); avoids probing Qt.
-    webview.start(gui="gtk")
+    # On Linux use GTK/WebKit explicitly; on macOS/Windows let pywebview auto-select.
+    webview.start(gui="gtk" if sys.platform.startswith("linux") else None)
     return 0
 
 

@@ -19,31 +19,61 @@ It can:
 
 ## Install
 
-This project targets the system Python on Arch/CachyOS, which blocks `pip` from
-writing into it. Create a venv that *inherits* the system packages (so it can see
-`astropy`, `numpy` and the GTK WebKit bindings pywebview needs) and add the one
-missing dependency:
+**Python 3.10+ required.**
+
+### Linux
+
+The GUI needs **WebKit2GTK** system libraries (used by pywebview's GTK backend):
+
+| Distro | Command |
+|--------|---------|
+| Arch / CachyOS | `sudo pacman -S python-gobject webkit2gtk-4.1` |
+| Ubuntu / Debian | `sudo apt install python3-gi gir1.2-webkit2-4.1` |
+| Fedora | `sudo dnf install python3-gobject webkit2gtk4.1` |
+
+Then create a venv and install Python dependencies:
 
 ```bash
-python3 -m venv --system-site-packages .venv
-.venv/bin/pip install pywebview pytest
+python3 -m venv .venv
+.venv/bin/pip install pywebview astropy numpy
 ```
 
-> The GUI uses pywebview's **GTK WebKit** backend, which relies on the system
-> `gi` / `WebKit2` bindings (already present here). The only pip-installed
-> package is `pywebview` itself.
+> **Arch / CachyOS tip:** if `astropy` and `numpy` are already installed
+> system-wide, use `--system-site-packages` to inherit them and skip
+> reinstalling: `python3 -m venv --system-site-packages .venv`
+
+### macOS
+
+Uses the built-in **WKWebView** — no extra system libraries needed:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install pywebview astropy numpy
+```
+
+### Windows
+
+Requires **Microsoft Edge WebView2** (ships with Windows 11; free download for
+Windows 10 from microsoft.com/en-us/edge/webview2):
+
+```bat
+python -m venv .venv
+.venv\Scripts\pip install pywebview astropy numpy
+```
 
 ## Run
 
-GUI:
+**Linux / macOS:**
 
 ```bash
 .venv/bin/python -m panelizer
 ```
 
-> On some Wayland sessions GTK WebKit fails with a "Protocol error dispatching to
-> Wayland display". If that happens, route through XWayland:
-> `GDK_BACKEND=x11 .venv/bin/python -m panelizer`.
+**Windows:**
+
+```bat
+.venv\Scripts\python -m panelizer
+```
 
 1. **Choose folder…** — pick a directory of `.fit`/`.fits` files (tick *Include
    subfolders* to recurse). Focal length and pixel size are pre-filled from the headers.
@@ -59,11 +89,13 @@ GUI:
 Headless dry-run (no GUI / WebKit needed — handy for scripting and CI):
 
 ```bash
+# Linux / macOS
 .venv/bin/python -m panelizer --cli lights/ --focal 250 --pixel 2.9 --threshold 15
-# move into panel_NN/ subfolders:
 .venv/bin/python -m panelizer --cli lights/ --threshold 15 --commit
-# copy (instead of move) into a separate destination:
 .venv/bin/python -m panelizer --cli lights/ --threshold 15 --commit --copy --dest /path/to/out
+
+# Windows
+.venv\Scripts\python -m panelizer --cli lights\ --threshold 15 --commit
 ```
 
 ## How grouping works
@@ -92,10 +124,10 @@ there precisely so you can find the threshold that matches your capture pattern.
   rectangle orientation is approximate.
 - **Aladin Lite v2** (Canvas2D) is vendored locally in `web/aladin/` along with
   jQuery — so the app engine loads with no internet. We use v2 rather than v3
-  because v3 requires WebGL2, which fails inside the GTK WebKit embed on
-  XWayland+NVIDIA ("Failed to create GBM buffer"). The DSS **survey tiles** are
-  still fetched over HTTP from CDS, so the sky background needs internet; the
-  footprint/panel overlay works regardless.
+  because v3 requires WebGL2, which is unavailable in some embedded WebView
+  configurations (notably GTK WebKit on XWayland+NVIDIA). The DSS **survey
+  tiles** are still fetched over HTTP from CDS, so the sky background needs
+  internet; the footprint/panel overlay works regardless.
 - The frontend must not declare a global `$` — it would shadow jQuery's `$` and
   break Aladin. Use the `byId` helper in `web/app.js` instead.
 - `commit` writes `panelizer_manifest.json` in the folder and refuses to run a
@@ -104,7 +136,8 @@ there precisely so you can find the threshold that matches your capture pattern.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest tests/ -q
+.venv/bin/python  -m pytest tests/ -q   # Linux / macOS
+.venv\Scripts\python -m pytest tests/ -q  # Windows
 ```
 
 ## Layout
