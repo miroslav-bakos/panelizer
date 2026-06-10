@@ -1,6 +1,6 @@
 # Panelizer
 
-[![Tests](https://github.com/YOUR_USERNAME/panelizer/actions/workflows/test.yml/badge.svg)](https://github.com/YOUR_USERNAME/panelizer/actions/workflows/test.yml)
+[![Tests](https://github.com/miroslav-bakos/panelizer/actions/workflows/test.yml/badge.svg)](https://github.com/miroslav-bakos/panelizer/actions/workflows/test.yml)
 
 A lightweight desktop tool for turning a folder of scattered FITS sub-exposures
 (e.g. a Seestar / smart-telescope mosaic) into organised **panels**, grouped by
