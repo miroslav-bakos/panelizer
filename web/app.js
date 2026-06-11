@@ -2,8 +2,7 @@
    Aladin Lite map, and keeps the control panel in sync. */
 
 let aladin = null;
-let overlay = null;
-let bboxOverlay = null;
+let panelOverlays = []; // per-panel overlays; cleared on each redraw
 let scanned = false;
 let lastResult = null;
 let pendingDraw = null;   // result waiting for Aladin to finish init
@@ -37,11 +36,7 @@ function initAladin() {
       showGrid: true,
       cooFrame: 'ICRS',
     });
-    overlay = A.graphicOverlay({ color: '#00aaff', lineWidth: 1 });
-    bboxOverlay = A.graphicOverlay({ color: '#ffffff', lineWidth: 2 });
     highlightOverlay = A.graphicOverlay({ color: '#ffd400', lineWidth: 3 });
-    aladin.addOverlay(overlay);
-    aladin.addOverlay(bboxOverlay);
     aladin.addOverlay(highlightOverlay);
     // Catalog used purely to render the panel-number labels at panel centres.
     labelCatalog = A.catalog({
@@ -61,13 +56,19 @@ function initAladin() {
 }
 
 function drawPanels(result) {
-  if (!aladin || !overlay) {
+  if (!aladin || !highlightOverlay) {
     pendingDraw = result;
     return;
   }
   pendingDraw = null;
-  overlay.removeAll();
-  bboxOverlay.removeAll();
+  // Remove per-panel overlays from the previous draw by splicing them out of
+  // Aladin v2's internal arrays (there is no removeOverlay() API in v2).
+  if (panelOverlays.length) {
+    const view = aladin.view;
+    view.overlays = view.overlays.filter(o => !panelOverlays.includes(o));
+    view.allOverlayLayers = view.allOverlayLayers.filter(o => !panelOverlays.includes(o));
+    panelOverlays = [];
+  }
   highlightOverlay.removeAll();
   labelCatalog.removeAll();
   selectedPanelId = null;
@@ -75,14 +76,22 @@ function drawPanels(result) {
   const labelSources = [];
   for (const p of result.panels) {
     const color = panelColor(p.id, total);
+    // One overlay per panel so Aladin v2's per-overlay colour applies correctly
+    // (v2 draws all shapes in an overlay with a single strokeStyle; per-shape
+    // colour options are silently ignored).
+    const fpOverlay = A.graphicOverlay({ color, lineWidth: 1 });
+    aladin.addOverlay(fpOverlay);
+    panelOverlays.push(fpOverlay);
     // v2 polygon: array of [ra, dec] pairs
     for (const fp of p.footprints) {
-      const poly = A.polygon(fp, { color, lineWidth: 1 });
-      overlay.add(poly);
+      fpOverlay.add(A.polygon(fp));
     }
     // panel bounding box
     const [r0, r1, d0, d1] = p.bbox;
-    bboxOverlay.add(A.polygon([[r0, d0], [r1, d0], [r1, d1], [r0, d1]], { color, lineWidth: 2 }));
+    const bbOverlay = A.graphicOverlay({ color, lineWidth: 2 });
+    aladin.addOverlay(bbOverlay);
+    panelOverlays.push(bbOverlay);
+    bbOverlay.add(A.polygon([[r0, d0], [r1, d0], [r1, d1], [r0, d1]]));
     // number label at the panel centre
     labelSources.push(A.source(p.center_ra, p.center_dec, { id: String(p.id) }));
   }
